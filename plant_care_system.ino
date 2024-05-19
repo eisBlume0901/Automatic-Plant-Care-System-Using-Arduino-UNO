@@ -8,7 +8,7 @@
 
 // Plant Parameters
 float minTemp = 18; // Chili plant minimum temperature
-float maxTemp = 30; // Chili plant maximum temperature
+float maxTemp = 35; // Chili plant maximum temperature
 float maxHumid = 60; // Chili plant maximum humidity
 float minHumid = 55; // Chili plant minimum humidity
 
@@ -57,6 +57,12 @@ int directionPin1 = 2;
 int directionPin2 = 7;
 int fanMotorSpeed = 255;
 
+#include <Stepper.h>
+int stepsPerRevolution = 2048; // Half Revolution
+Stepper stepper(stepsPerRevolution, 8, 10, 9, 11);
+int motorSpeed = 20;
+int motorDuration = 500;
+unsigned long distanceSteps = 0; 
 
 void setup()
 {
@@ -80,6 +86,9 @@ void setup()
   pinMode(speedPin, OUTPUT);
   pinMode(directionPin1, OUTPUT);
   pinMode(directionPin2, OUTPUT);
+
+  stepper.setSpeed(motorSpeed);
+
 }
 
 void loop()
@@ -92,7 +101,9 @@ void loop()
 
   displayTemperatureAndHumidity();
 
-  activateFan();
+  // deploySunlightShade();
+
+  // activateFan();
 
   // Put soil moisture and automatic irrigation here instead of remote 
   // There will be a soilThreshold so that it will automatically detect if it needs water
@@ -251,6 +262,7 @@ void activateCatBarrier(void) {
 
 void activateFan(void) {
 
+  // Range between 55 to 60
   while (humidity >= minHumid && humidity <= maxHumid) {
     humidity = dht.readHumidity();
     turnOnFan();
@@ -284,4 +296,24 @@ void turnOffFan(void) {
   digitalWrite(directionPin1, LOW);
   digitalWrite(directionPin2, LOW);
   analogWrite(speedPin, 0);
+}
+
+
+void deploySunlightShade(void) {
+
+  // Range between 18 and 30
+  while (temperature >= minTemp && temperature <= maxTemp) {
+     lcd.setCursor(0, 0);
+     lcd.print("Deploying...");
+     lcd.setCursor(0, 1);
+     lcd.print("sunlight shade");
+     delay(displayTime);
+     lcd.clear();
+
+     stepper.step(stepsPerRevolution);
+     delay(500);
+     stepper.step(-stepsPerRevolution);
+     delay(500);
+  }
+
 }
