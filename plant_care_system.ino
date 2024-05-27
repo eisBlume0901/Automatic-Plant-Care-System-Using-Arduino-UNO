@@ -47,7 +47,7 @@
 
   // Water Pump and Soil Moisture
   #define soilMoisturePin A1
-  #define pumpPin = 12
+  #define pumpPin 12
   float soilMoisture;
   int waterDuration = 5000; // 5 seconds
 
@@ -56,7 +56,6 @@
   {
     lcd.init(); // initialize the lcd
     lcd.backlight();
-
 
     dht.begin();
 
@@ -78,11 +77,9 @@
   {
     lcd.clear();
 
-    // activateCatBarrier();
-    
-    alertHighWaterLevel();
-
     displayTemperatureAndHumidity();
+
+    activateWaterPump();
 
     // deploySunlightShade();
 
@@ -181,10 +178,18 @@
 
     while (soilMoisture > maxSoilMoisture)
     {
+      lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Activating");
       lcd.setCursor(0, 1);
       lcd.print("Water Pump");
+      delay(displayTime);
+      
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Soil Moisture");
+      lcd.setCursor(0, 1);
+      lcd.print(soilMoisture);
       delay(displayTime);
 
       pumpWater();
