@@ -1,4 +1,4 @@
-  // Notes
+ // Notes
   // Components that only require 5V
   // DHT, LCD, Water Level, Soil Moisture
 
@@ -12,6 +12,9 @@
   float maxHumid = 60; // Chili plant maximum humidity
   float minHumid = 55; // Chili plant minimum humidity
   float maxSoilMoisture = 530;
+
+  boolean retracted = false;
+
 
   // LCD
   #include <LiquidCrystal_I2C.h>
@@ -47,7 +50,7 @@
 
   // Water Pump and Soil Moisture
   #define soilMoisturePin A1
-  #define pumpPin 12
+  #define pumpPin 3
   float soilMoisture;
   int waterDuration = 5000; // 5 seconds
 
@@ -68,9 +71,6 @@
     pinMode(speedPin, OUTPUT);
     pinMode(directionPin1, OUTPUT);
     pinMode(directionPin2, OUTPUT);
-
-    pinMode(pumpPin, OUTPUT);
-    pinMode(soilMoisturePin, INPUT);
   }
 
   void loop()
@@ -79,12 +79,11 @@
 
     displayTemperatureAndHumidity();
 
-    activateWaterPump();
+    deploySunlightShade();
 
-    // deploySunlightShade();
+    activateFan();
 
-    // activateFan();
-
+    alertHighWaterLevel();
   }
 
   // Only reads the temperature and humidity
@@ -164,43 +163,33 @@
     analogWrite(speedPin, 0);
   }
 
-
+  
   void deploySunlightShade(void) {
-
-    // Range between 18 and 30
-
-  }
-
-
-  void activateWaterPump(void) {
-
-    soilMoisture = analogRead(soilMoisturePin);
-
-    while (soilMoisture > maxSoilMoisture)
-    {
-      lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.print("Activating");
+    int delayTime = 2000;
+    if (temperature < minTemp && retracted == false) {
+      lcd.setCursor(0,0);
+      lcd.print("Removing");
       lcd.setCursor(0, 1);
-      lcd.print("Water Pump");
+      lcd.print(" sunlight shade");
+      delay(displayTime);
+
+      servo.write(0);
+      delay(delayTime);
+      servo.write(90); 
+      retracted = true;
+      temperature = dht.readTemperature();
+
+    } else if (temperature > maxTemp && retracted == true) {
+      lcd.setCursor(0,0);
+      lcd.print("Deploying");
+      lcd.setCursor(0, 1);
+      lcd.print(" sunlight shade");
       delay(displayTime);
       
-      lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.print("Soil Moisture");
-      lcd.setCursor(0, 1);
-      lcd.print(soilMoisture);
-      delay(displayTime);
-
-      pumpWater();
-
-      soilMoisture = analogRead(soilMoisturePin);
-
+      servo.write(180);
+      delay(delayTime); 
+      servo.write(90);
+      retracted = false;
+      temperature = dht.readTemperature();
     }
-  }
-
-  void pumpWater(void) {
-    digitalWrite(pumpPin, HIGH);
-    delay(waterDuration);
-    digitalWrite(pumpPin, LOW);
   }
