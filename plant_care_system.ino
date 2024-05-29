@@ -13,7 +13,7 @@
   float minHumid = 55; // Chili plant minimum humidity
   float maxSoilMoisture = 530;
 
-  boolean retracted = false;
+  boolean retracted = true; // For sunlight shade
 
 
   // LCD
@@ -78,6 +78,8 @@
     lcd.clear();
 
     displayTemperatureAndHumidity();
+
+    activateWaterPump();
 
     deploySunlightShade();
 
@@ -192,4 +194,36 @@
       retracted = false;
       temperature = dht.readTemperature();
     }
+  }
+void activateWaterPump(void) {
+
+    soilMoisture = analogRead(soilMoisturePin);
+
+    while (soilMoisture < maxSoilMoisture)
+    {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Activating");
+      lcd.setCursor(0, 1);
+      lcd.print("Water Pump");
+      delay(displayTime);
+      
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Soil Moisture");
+      lcd.setCursor(0, 1);
+      lcd.print(soilMoisture);
+      delay(displayTime);
+
+      pumpWater();
+
+      soilMoisture = analogRead(soilMoisturePin);
+
+    }
+  }
+
+  void pumpWater(void) {
+    digitalWrite(pumpPin, HIGH);
+    delay(waterDuration);
+    digitalWrite(pumpPin, LOW);
   }
