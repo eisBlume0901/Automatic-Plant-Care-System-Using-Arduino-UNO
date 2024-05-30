@@ -2,16 +2,16 @@
   // Components that only require 5V
   // DHT, LCD, Water Level, Soil Moisture
 
-  // Components that requires 9V, add another breadboard, note they should not share the same ground or else it would lead to
+  // Components that require 9V, add another breadboard, note they should not share the same ground or else it would lead to
   // short circuiting
   // DC Motor with Fan
 
   // Plant Parameters
-  float minTemp = 18; // Chili plant minimum temperature
-  float maxTemp = 35; // Chili plant maximum temperature
-  float maxHumid = 60; // Chili plant maximum humidity
+  float minTemp = 18; // Chili plant minimum temperature 
+  float maxTemp = 20; // Chili plant maximum temperature
+  float maxHumid = 70; // Chili plant maximum humidity 
   float minHumid = 55; // Chili plant minimum humidity
-  float maxSoilMoisture = 530;
+  float maxSoilMoisture = 530; // Change to greater than
 
   boolean retracted = true; // For sunlight shade
 
@@ -52,7 +52,7 @@
   #define soilMoisturePin A1
   #define pumpPin 3
   float soilMoisture;
-  int waterDuration = 5000; // 5 seconds
+  int waterDuration = 2000; // 2 seconds
 
 
   void setup()
@@ -71,6 +71,9 @@
     pinMode(speedPin, OUTPUT);
     pinMode(directionPin1, OUTPUT);
     pinMode(directionPin2, OUTPUT);
+
+    pinMode(pumpPin, OUTPUT);
+    digitalWrite(pumpPin, LOW);
   }
 
   void loop()
@@ -80,9 +83,9 @@
     displayTemperatureAndHumidity();
 
     activateWaterPump();
-
+ 
     deploySunlightShade();
-
+ 
     activateFan();
 
     alertHighWaterLevel();
@@ -167,7 +170,7 @@
 
   
   void deploySunlightShade(void) {
-    int delayTime = 2000;
+    int delayTime = 6000;
     if (temperature < minTemp && retracted == false) {
       lcd.setCursor(0,0);
       lcd.print("Removing");
@@ -199,13 +202,14 @@ void activateWaterPump(void) {
 
     soilMoisture = analogRead(soilMoisturePin);
 
-    while (soilMoisture < maxSoilMoisture)
+    if (soilMoisture > maxSoilMoisture)
     {
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Activating");
       lcd.setCursor(0, 1);
       lcd.print("Water Pump");
+      
       delay(displayTime);
       
       lcd.clear();
@@ -215,15 +219,13 @@ void activateWaterPump(void) {
       lcd.print(soilMoisture);
       delay(displayTime);
 
-      pumpWater();
+      digitalWrite(pumpPin, HIGH);
 
       soilMoisture = analogRead(soilMoisturePin);
-
     }
-  }
-
-  void pumpWater(void) {
-    digitalWrite(pumpPin, HIGH);
+    else
+    {
+      digitalWrite(pumpPin, LOW);
+    }
     delay(waterDuration);
-    digitalWrite(pumpPin, LOW);
   }
